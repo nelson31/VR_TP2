@@ -15,10 +15,10 @@ RUN pip3 install python-dotenv
 RUN pip3 install Flask-PyMongo
 
 # Copiar esta o conteudo desta diretoria para o container
-COPY testflask.py auth-service/
+COPY appflask.py auth-service/
 
 # Correr o Flask
-RUN python3 auth-service/testflask.py
+RUN python3 auth-service/appflask.py
 
 # Expor uma porta
 EXPOSE 5000
