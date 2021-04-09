@@ -1,27 +1,32 @@
 #!/usr/bin/python3
 
-from flask import Flask, request,flash, session, render_template, redirect
-import hashlib
-import managebd
-import os
+import os, hashlib
+import comunicadb
+import json
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-import json
+from flask import Flask, request, flash, session, render_template, redirect
+
 
 app = Flask(__name__)
-
 
 
 @app.route('/login', methods=('GET', 'POST'))
 def login():
 
+    # Caso seja um pedido de post 
     if(request.form.get("loginbutton")):
       
         username =  request.form.get("username")
-        userpassword = hashlib.sha256(request.form.get("password").encode()).hexdigest()
-        verifyuser = managebd.VerifyUser(username,userpassword) 
-        token = managebd.encode_token(username)
-        if verifyuser == True:
+        # Hash da password
+        password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
+        # Verifica o utilizador, adicionando-lhe o respetivo token
+        verificaUser = comunicadb.verificaUser(username, password)
+        # Obter o token
+        token = comunicadb.encode_token(username)
+        # Caso o utilizador seja valido, conceder acesso
+        if verificaUser == True:
+
             query_parameters = parse_qs(urlparse(request.referrer).query)
             if('Referer' not in query_parameters):
                 return token
@@ -29,31 +34,35 @@ def login():
                 referer = query_parameters['Referer'][0]
                 return redirect(str(referer)+ '?token=' +token.decode(),302)
     
-        elif verifyuser == False:
+        elif verificaUser == False:
             flash("Wrong password or username")
 
-    if(request.form.get("registerbutton")):
-        return redirect("/register")
-        
+    # Caso seja um pedido de get
     if(request.args.get('username')):
-        print("a tua prima")
+
         username = request.args.get('username')
         password = hashlib.sha256(request.args.get('password').encode()).hexdigest()
-        verifyuser = managebd.VerifyUser(username,password)
+        verificaUser = comunicadb.verificaUser(username,password)
          
-        if verifyuser == True:
+        if verificaUser == True:
             return json.dumps(True)
         else:
             return json.dumps(False)
-    
-    
+
+    # Se o utilizador clicou no botao regista, entao redirecionar para la!!
+    if(request.form.get("registerbutton")):
+
+        return redirect("/register")
+
     return render_template('login.html')
 
-@app.route("/verify", methods=["GET"])
-def verify():
+
+@app.route("/verificaToken", methods=["GET"])
+def verificaToken():
+
     # verify the token 
     if(request.args.get('token')):
-        validtoken = managebd.decode_token(request.args.get('token'))
+        validtoken = comunicadb.decode_token(request.args.get('token'))
         if(validtoken == True):
             return json.dumps(True)
         else:
@@ -63,9 +72,9 @@ def verify():
         return "No Token in there"
 
 
+@app.route('/registaUser', methods=['GET','POST'])
+def registaUser():
 
-@app.route('/register', methods=['GET','POST'])
-def register():
     referrer = request.headers.get("Referer")
     print("Aparece  " + str(referrer))
     if request.method == 'POST':
@@ -73,10 +82,10 @@ def register():
         if(request.form.get("registerbutton")):
 
             username =  request.form.get("username")
-            userpassword = hashlib.sha256(request.form.get("password").encode()).hexdigest()
+            password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
             email = request.form.get("email")
-            isAdmin = False
-            managebd.RegisterUser(username,userpassword,email,isAdmin)
+            role = "user"
+            comunicadb.registaUser(username, password, email, role)
 
             return redirect("/login")
 
@@ -85,6 +94,7 @@ def register():
 
     return render_template("register.html")
 
+
 if __name__ == '__main__':
     app.secret_key = os.urandom(12)
-    app.run(host="0.0.0.0", port=5001,debug=True)
+    app.run(host="0.0.0.0", port=5000,debug=True)
