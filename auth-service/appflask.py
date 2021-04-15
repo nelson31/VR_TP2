@@ -17,7 +17,7 @@ def login():
     # Caso seja um pedido de post 
     if(request.form.get("loginbutton")):
       
-        username =  request.form.get("username")
+        username = str(request.form.get("username"))
         # Hash da password
         password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
         # Verifica o utilizador, adicionando-lhe o respetivo token
@@ -40,7 +40,7 @@ def login():
     # Caso seja um pedido de get
     if(request.args.get('username')):
 
-        username = request.args.get('username')
+        username = str(request.args.get('username'))
         password = hashlib.sha256(request.args.get('password').encode()).hexdigest()
         verificaUser = comunicadb.verificaUser(username,password)
          
@@ -52,7 +52,7 @@ def login():
     # Se o utilizador clicou no botao regista, entao redirecionar para la!!
     if(request.form.get("registerbutton")):
 
-        return redirect("/register")
+        return redirect("/registaUser")
 
     return render_template('login.html')
 
@@ -81,7 +81,7 @@ def registaUser():
 
         if(request.form.get("registerbutton")):
 
-            username =  request.form.get("username")
+            username = str(request.form.get("username"))
             password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
             email = request.form.get("email")
             role = "user"

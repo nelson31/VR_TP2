@@ -9,7 +9,7 @@ RUN apt-get update &&\
 # Definicao das variaveis de ambiente de autenticacao e criacao da base de dados
 ENV MONGO_INITDB_ROOT_USERNAME=root
 ENV MONGO_INITDB_ROOT_PASSWORD=pass12345
-ENV MONGO_INITDB_DATABASE=flaskdb
+ENV MONGO_INITDB_DATABASE=authdb
 ENV MONGODB_DATA_DIR=/data/db
 ENV MONDODB_LOG_DIR=/dev/null
 

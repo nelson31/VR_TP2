@@ -8,14 +8,14 @@ import os
 import time
 from os import path
 
-PORT = 8001
+PORT = 8888
 
 
 class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def redirect(self):
                     self.send_response(303)
-                    self.send_header('Location','http://0.0.0.0:5001/login?Referer=http://0.0.0.0:'+str(PORT))
+                    self.send_header('Location','http://0.0.0.0:5000/login?Referer=http://0.0.0.0:'+str(PORT))
                     self.end_headers()
     def do_GET(self):
 
@@ -23,7 +23,7 @@ class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                 if path.exists("testfile.txt"):
                     with open("testfile.txt","rb") as file:  
                         usertoken = file.read()
-                        x = requests.get("http://auth_container:5001/verify?token="+usertoken.decode())
+                        x = requests.get("http://auth_container:5000/verificaToken?token="+usertoken.decode())
                         if x.text == "true":
                             return super().do_GET()
                         else:
@@ -36,7 +36,7 @@ class HttpRequestHandler(http.server.SimpleHTTPRequestHandler):
                     else:
                         usertoken = query_parameters["token"][0]
                         #usertoken = bytes.fromhex(usertoken)
-                        x = requests.get("http://auth_container:5001/verify?token="+usertoken)
+                        x = requests.get("http://auth_container:5000/verificaToken?token="+usertoken)
                         if x.text == "true":
                             with open("testfile.txt","w") as file:
                                   file.write(usertoken)

@@ -21,6 +21,26 @@ services:
         - auth-ftp
         - auth-http
 
+    http-service:
+      container_name: http_container
+      image: http-service
+      networks: 
+        - auth-http
+      ports: 
+        - "8888:8888"
+      volumes:
+        - http_ftp-vol:/usr/src/http
+
+    ftp-service:
+      container_name: ftp_container
+      image: ftp-service
+      networks:
+        - auth-ftp
+      ports:
+        - "21:21"
+      volumes:
+        - http_ftp-vol:/usr/src/ftp
+
 networks: 
     auth-mongo:
     auth-ftp:

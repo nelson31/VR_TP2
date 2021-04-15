@@ -7,14 +7,18 @@ from pymongo import MongoClient
 import pprint
 
 
-load_dotenv("variaveis.env")
+load_dotenv("./auth-service/variaveis.env")
 NAME_DB = os.getenv('NAME_DB')
 USERNAME_DB = os.getenv('USERNAME_DB')
-PASSWORD_DB = os.getenv("PASSWORD_DB")
-AUTHSECRET = os.getenv("AUTHSECRET")
+PASSWORD_DB = os.getenv('PASSWORD_DB')
+AUTHSECRET = os.getenv('AUTHSECRET')
 HOST = "mongo_container"
 PORTA = 27017
 
+uri = "mongodb://%s:%s@%s:%d" % (
+    USERNAME_DB, PASSWORD_DB, HOST, PORTA)
+
+print(AUTHSECRET)
 
 '''
 Funcao usada para registar um novo utilizador
@@ -23,9 +27,9 @@ def registaUser(username, password, email, role):
 
     try:
         
-        myclient = MongoClient(HOST, PORTA)
+        myclient = MongoClient(uri)
         # Obter a base de dados
-        db = myclient['auth_bd']
+        db = myclient[NAME_DB]
         # Inserir os dados 
         post = {"username": username,
             "password": password,
@@ -57,9 +61,9 @@ def verificaUser(username, password):
 
     try:
         
-        myclient = MongoClient(HOST, PORTA)
+        myclient = MongoClient(uri)
         # Obter a base de dados
-        db = myclient['auth_bd']
+        mydb = myclient[NAME_DB]
         # Obter a coluna a alterar
         mycol = mydb["users"]
         
