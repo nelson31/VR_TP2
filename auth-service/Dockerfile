@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 # Atualizar os pacotes
 RUN apt-get update &&\
@@ -14,11 +14,15 @@ RUN pip3 install pyjwt
 RUN pip3 install python-dotenv
 RUN pip3 install Flask-PyMongo
 
+# Pacotes adicionais
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y net-tools
+
 # Copiar esta o conteudo desta diretoria para o container
-COPY appflask.py auth-service/
+COPY . auth-service/
 
 # Correr o Flask
-RUN python3 auth-service/appflask.py
+CMD [ "python3", "auth-service/appflask.py" ]
 
 # Expor uma porta
 EXPOSE 5000

@@ -1,10 +1,24 @@
 FROM ubuntu:20.04
 
-RUN apt update
-RUN apt -y install python3.7
-RUN apt -y install python3-pip
-RUN cd /usr/local/bin/httpserv/
-RUN pip3 install -r requirements.txt
-RUN python3 httpf.py
+# Atualizar os pacotes
+RUN apt-get update &&\
+ apt-get install -y software-properties-common &&\
+ add-apt-repository universe &&\
+ apt-get install -y php-apcu
+
+# Instalar as dependencias necessarias
+RUN apt-get install -y python3.7
+RUN apt-get install -y python3-pip
+RUN pip3 install requests
+
+# Pacotes adicionais
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y net-tools
+
+# Copiar esta o conteudo desta diretoria para o container
+COPY . http-server/
+
+# Correr o http
+CMD [ "python3", "http-server/apphttp.py" ]
 
 

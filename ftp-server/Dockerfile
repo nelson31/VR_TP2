@@ -1,13 +1,27 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
-RUN apt-get update & apt-get -y upgrade
+# Atualizar os pacotes
+RUN apt-get update &&\
+ apt-get install -y software-properties-common &&\
+ add-apt-repository universe &&\
+ apt-get install -y php-apcu
 
-# Install MongoDB.
-RUN \
-  apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 && \
-  echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' > /etc/apt/sources.list.d/mongodb.list && \
-  apt-get update && \
-  apt-get install -y mongodb-org && \
-  rm -rf /var/lib/apt/lists/*
+# Instalar as dependencias necessarias
+RUN apt-get install -y python3.7
+RUN apt-get install -y python3-pip
+RUN pip3 install pyftpdlib
+RUN pip3 install requests
+
+# Pacotes adicionais
+RUN apt-get install -y iputils-ping
+RUN apt-get install -y net-tools
+
+# Copiar esta o conteudo desta diretoria para o container
+COPY . ftp-server/
+
+# Correr o ftp
+CMD [ "python3", "ftp-server/appftp.py" ]
+
+
 
   

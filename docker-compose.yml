@@ -3,27 +3,23 @@ version: '3'
 services:
     db_auth-service:
       container_name: mongo_container
-      image: mongo
-      environment:
-        - MONGO_INITDB_ROOT_USERNAME=root
-        - MONGO_INITDB_ROOT_PASSWORD=pass12345
-      volumes:
-        - mongo-vol:/data/db
+      image: db-service
       ports:
         - "27017:27017"
       networks:
         - auth-mongo
-      restart: unless-stopped
+      volumes:
+        - mongo-vol:/data/db
 
     auth-service:
       container_name: auth_container
       image: auth-service
+      ports: 
+        - "5000:5000"
       networks:
         - auth-mongo
         - auth-ftp
         - auth-http
-      ports: 
-        - "5000:5000"
 
 networks: 
     auth-mongo:
