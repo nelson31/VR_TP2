@@ -1,22 +1,20 @@
-<link rel="stylesheet" href="/static/style.css" type="text/css">
-{% block body %}
-{% if session['logged_in'] %}
-<p>You're logged in already!</p>
-{% else %}
-
-{% with messages = get_flashed_messages() %}
-   {% if messages %}
-     <ul class="flashes">
-        {% for message in messages %}
-         <div class="message_flash">{{ message }}</div>
-        {% endfor %}
-    </ul>
-  {% endif %}
- {% endwith %}
- 
 <div class="form-container">
+	<link rel="stylesheet" href="/static/style.css" type="text/css">
+	{% block body %}
+	{% if session['logged_in'] %}
+	<p>Tu ja tens conta iniciada!!!</p>
+	{% else %}
 	<form action="/login" method="POST" id="form">
 		<h3>Login</h3>
+		{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		<ul class="flashes">
+			{% for message in messages %}
+			<div class="message_flash">{{ message }}</div>
+			{% endfor %}
+		</ul>
+		{% endif %}
+		{% endwith %}
 		<div class="container">
 			<span class="icon">
 				<i class="fas fa-user"></i>
