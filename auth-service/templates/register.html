@@ -1,40 +1,45 @@
 <link rel="stylesheet" href="/static/style.css" type="text/css">
-{% block body %}
-{% if session['logged_in'] %}
-<p>You're logged in already!</p>
-{% else %}
- 
- 
-<form action="/registaUser" method="POST">
-	<div class="login">
-		<div class="login-screen">
-			<div class="app-title">
-				<h1>Register</h1>
-			</div>
- 
-			<div class="login-form">
-				<div class="control-group">
-				<input type="text" class="login-field" value="" placeholder="username" name="username">
-				<label class="login-field-icon fui-user" for="login-name"></label>
-				</div>
- 
-				<div class="control-group">
-				<input type="password" class="login-field" value="" placeholder="password" name="password">
-				<label class="login-field-icon fui-lock" for="login-pass"></label>
-                </div>
-                <div class="control-group">
-                    <input type="text" class="register-field" value="" placeholder="email" name="email">
-                    <label class="login-field-icon fui-lock" for="login-pass"></label>
-                    </div>
- 
-                <input type="submit" name= "registerbutton" value="Register" class="btn btn-primary btn-large btn-block" >
-                <input type="submit" name= "loginbutton" value="Login" class="btn btn-primary btn-large btn-block" >
 
-			    <br>
-			</div>
+<body>
+<div class="form-container">
+	{% block body %}
+	{% if session['logged_in'] %}
+	<p>Tu ja tens conta iniciada!!!</p>
+	{% else %}
+	<form action="/registaUser" method="POST" id="form">
+		<h3>Register</h3>
+		{% with messages = get_flashed_messages() %}
+		{% if messages %}
+		<ul class="flashes">
+			{% for message in messages %}
+			<div class="message_flash">{{ message }}</div>
+			{% endfor %}
+		</ul>
+		{% endif %}
+		{% endwith %}
+		<div class="container">
+			<span class="icon">
+				<i class="fas fa-user"></i>
+			</span>
+			<input type="text" placeholder="username" name="username"/>
 		</div>
-	</div>
-</form>
- 
-{% endif %}
-{% endblock %}
+		<div class="container">
+			<span class="icon">
+				<i class="fas fa-email"></i>
+			</span>
+			<input type="email" placeholder="email" name="email"/>
+		</div>
+		<div class="container">
+			<span class="icon">
+				<i class="fas fa-lock"></i>
+			</span>
+			<input type="password" placeholder="password" name="password"/>
+		</div>
+		<input type="submit" name="registerbutton" value="register"/>
+		<input type="submit" name="loginbutton" value="login"/>
+
+	</form>
+	{% endif %}
+	{% endblock %}
+</div>
+</body>

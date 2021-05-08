@@ -1,27 +1,21 @@
-html, body {
-
-    margin: 0px;
-    padding: 0px;
+body  {
+  background-color: #cccccc;
 }
 
 .message_flash {
 	font-size: 20px;
 	padding: 0.5px;
-	color: #bbb;
+	color: #000;
 }
 
 .form-container {
-	min-height: 100vh;
-	width: 100vw;
+	min-height: 150vh;
+	width: 150vw;
 	display: flex;
 	margin: 0px;
 	padding: 0px;
 	align-items: center;
 	justify-content: center;
-	background: url(/templates/bg-back.jpg) no-repeat;
-	background-size: cover;
-	background-position: center;
-	perspective: 1000px;
 }
 
 .form-container form{
@@ -41,14 +35,14 @@ html, body {
 .form-container form h3 {
 	font-size: 30px;
 	padding: 30px 0;
-	color: #ccc;
+	color: #000;
 	letter-spacing: 3px;
 }
      
 .form-container form i {
 	font-size: 20px;
 	padding: 0.5px;
-	color: #bbb;
+	color: #000;
 }
 
 .form-container form input {
@@ -71,7 +65,6 @@ html, body {
 	width: 90%;
 	cursor: pointer;
 	background: linear-gradient(90deg, deeppink, blueviolet);
-	margin-top: 30px;
 	border-radius: 50px;
 }
      
@@ -83,7 +76,6 @@ html, body {
 	width: 90%;
 	cursor: pointer;
 	background: linear-gradient(90deg, deeppink, blueviolet);
-	margin-top: 10px;
 	border-radius: 50px;
 }
      

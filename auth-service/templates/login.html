@@ -1,5 +1,7 @@
+<link rel="stylesheet" href="/static/style.css" type="text/css">
+
+<body>
 <div class="form-container">
-	<link rel="stylesheet" href="/static/style.css" type="text/css">
 	{% block body %}
 	{% if session['logged_in'] %}
 	<p>Tu ja tens conta iniciada!!!</p>
@@ -31,7 +33,7 @@
 		<input type="submit" name="registerbutton" value="register"/>
 
 	</form>
+	{% endif %}
+	{% endblock %}
 </div>
- 
-{% endif %}
-{% endblock %}
+</body>

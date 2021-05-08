@@ -26,25 +26,28 @@ Funcao usada para registar um novo utilizador
 def registaUser(username, password, email, role):
 
     try:
-        
-        myclient = MongoClient(uri)
-        # Obter a base de dados
-        db = myclient[NAME_DB]
-        # Inserir os dados 
-        post = {"username": username,
-            "password": password,
-            "email": email,
-            "role": role,
-            "token": None}
-        # Obter a colecao users
-        users = db.users
-        post_id = users.insert_one(post).inserted_id
-        # Listar as colecoes
-        # db.list_collection_names()
-        # Obter um unico documento
-        # pprint.pprint(users.find_one())
-        # pprint.pprint(users.find_one({"_id": post_id}))
-        # pprint.pprint(users.find_one({"username": "Nelson"}))
+        # Verificar se o utilizador ja existe na base de dados 
+        if verificaUser(username, password):
+            return False
+        else:
+            myclient = MongoClient(uri)
+            # Obter a base de dados
+            db = myclient[NAME_DB]
+            # Inserir os dados 
+            post = {"username": username,
+                "password": password,
+                "email": email,
+                "role": role,
+                "token": None}
+            # Obter a colecao users
+            users = db.users
+            post_id = users.insert_one(post).inserted_id
+            # Listar as colecoes
+            # db.list_collection_names()
+            # Obter um unico documento
+            # pprint.pprint(users.find_one())
+            # pprint.pprint(users.find_one({"_id": post_id}))
+            # pprint.pprint(users.find_one({"username": "Nelson"}))
         
     except Exception as error:
 

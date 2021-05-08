@@ -20,6 +20,10 @@ def login():
         username = str(request.form.get("username"))
         # Hash da password
         password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
+        # Se os tammanhos nao forem maiores que 0
+        if len(username) == 0 or len(password) == 0:
+        	flash("Introduce a valid username and password")
+        	return render_template("login.html")
         # Verifica o utilizador, adicionando-lhe o respetivo token
         verificaUser = comunicadb.verificaUser(username, password)
         # Obter o token
@@ -32,10 +36,11 @@ def login():
                 return token
             else:
                 referer = query_parameters['Referer'][0]
-                return redirect(str(referer)+ '?token=' +token.decode(),302)
+                return redirect(str(referer) + '?token=' + token,302)
     
-        elif verificaUser == False:
+        else:
             flash("Wrong password or username")
+            return render_template("login.html")
 
     # Caso seja um pedido de get
     if(request.args.get('username')):
@@ -54,7 +59,7 @@ def login():
 
         return redirect("/registaUser")
 
-    return render_template('login.html')
+    return render_template("login.html")
 
 
 @app.route("/verificaToken", methods=["GET"])
@@ -84,8 +89,14 @@ def registaUser():
             username = str(request.form.get("username"))
             password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
             email = request.form.get("email")
+            if len(username) == 0 or len(email) == 0 or len(password) == 0:
+            	flash("Introduce a valid username, email and password")
+            	return render_template("register.html")
             role = "user"
-            comunicadb.registaUser(username, password, email, role)
+            res = comunicadb.registaUser(username, password, email, role)
+            if res == False:
+            	flash("You're already registed!")
+            	return render_template("register.html")
 
             return redirect("/login")
 
