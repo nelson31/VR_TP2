@@ -1,5 +1,6 @@
 import os, hashlib
 import jwt
+import json
 import datetime
 from dotenv import load_dotenv
 # importing Mongoclient from pymongo
@@ -58,7 +59,74 @@ def registaUser(username, password, email, role):
 
 
 '''
-Verifica um determinado utilizador
+Faz update um determinado utilizador, retornando true se correr tudo bem e 
+ainda o seu papel no sistema
+'''
+def updateUser(username, password):
+
+    try:
+        
+        myclient = MongoClient(uri)
+        # Obter a base de dados
+        mydb = myclient[NAME_DB]
+        # Obter a coluna a alterar
+        mycol = mydb["users"]
+
+        myquery = { "username": username, "password": password }
+
+        # Encontrar um que faca match
+        result = mycol.find_one(myquery)
+        print(result)
+        data = json.loads(result)
+        print(data)
+
+        # Se o utilizador nao existir, retorna falso
+        if result.matched_count == 0:
+            return (False, '')
+        else:
+            newvalues = { "$set": { "token": encode_token(username, data.get("role")) } }
+
+            # Fazer o update
+            result1 = mycol.update_one(myquery, newvalues)
+
+            return (True, data.get("role"))
+
+    except Exception as error:
+        print(error)
+        return (False, '')
+
+
+'''
+Usado para obter o token
+'''
+def obterToken(username, password):
+
+    try:
+        
+        myclient = MongoClient(uri)
+        # Obter a base de dados
+        mydb = myclient[NAME_DB]
+        # Obter a coluna a alterar
+        mycol = mydb["users"]
+        
+        myquery = { "username": username, "password": password }
+
+        # Encontrar um que faca match
+        result = mycol.find_one(myquery)
+
+        # Se o utilizador nao existir, retorna falso
+        if result.matched_count == 0:
+            return (False, '')
+        else:
+            return (True, result.token)
+
+    except Exception as error:
+        print(error)
+        return (False, '')
+
+
+'''
+Verifica um determinado utilizador, retornando tambem o seu papel no sistema
 '''
 def verificaUser(username, password):
 
@@ -71,37 +139,39 @@ def verificaUser(username, password):
         mycol = mydb["users"]
         
         myquery = { "username": username, "password": password }
-        newvalues = { "$set": { "token": encode_token(username) } }
 
-        # Fazer o update
-        result = mycol.update_one(myquery, newvalues)
+        # Encontrar um que fasca match
+        result = mycol.find_one(myquery)
 
         # Se o utilizador nao existir, retorna falso
         if result.matched_count == 0:
-            return False
+            return (False, '')
+        else:
+            return (True, result.role)
 
     except Exception as error:
         print(error)
-        return False
+        return (False, '')
 
-    return True
+    return (True, result.role)
 
 
 '''
 Fazer o encoding de um token
 '''
-def encode_token(username):
+def encode_token(username, role):
     
     payload = {
-                'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0),
-                'iat': datetime.datetime.utcnow(),
-                'sub': username
+                "exp" : datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0),
+                "iat": datetime.datetime.utcnow(),
+                "user": username,
+                "role": role
                  }
                  
     return jwt.encode(
                 payload,
                 AUTHSECRET,
-                algorithm='HS256')
+                algorithm="HS256")
 
 
 '''

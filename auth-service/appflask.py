@@ -5,7 +5,7 @@ import comunicadb
 import json
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-from flask import Flask, request, flash, session, render_template, redirect
+from flask import Flask, request, flash, session, render_template, redirect, make_response
 
 
 app = Flask(__name__)
@@ -24,20 +24,19 @@ def login():
         if len(username) == 0 or len(password) == 0:
         	flash("Introduce a valid username and password")
         	return render_template("login.html")
-        # Verifica o utilizador, adicionando-lhe o respetivo token
-        verificaUser = comunicadb.verificaUser(username, password)
-        # Obter o token
-        token = comunicadb.encode_token(username)
-        # Caso o utilizador seja valido, conceder acesso
-        if verificaUser == True:
 
-            query_parameters = parse_qs(urlparse(request.referrer).query)
-            if('Referer' not in query_parameters):
-                return token
-            else:
-                referer = query_parameters['Referer'][0]
-                return redirect(str(referer) + '?token=' + token,302)
-    
+        # Update do utilizador, adicionando-lhe o respetivo token
+        (updateUser,role) = comunicadb.updateUser(username, password)
+        # Obter o token
+        token = comunicadb.encode_token(username, role)
+
+        # Caso o utilizador seja valido, conceder acesso
+        if updateUser == True:
+
+            res = make_response(redirect(redirect_url + '?user=' + username + '&token=' + token))
+            res.set_cookie("vr_token", token)
+            return res
+
         else:
             flash("Wrong password or username")
             return render_template("login.html")
@@ -47,9 +46,9 @@ def login():
 
         username = str(request.args.get('username'))
         password = hashlib.sha256(request.args.get('password').encode()).hexdigest()
-        verificaUser = comunicadb.verificaUser(username,password)
+        (updateUser,role) = comunicadb.updateUser(username,password)
          
-        if verificaUser == True:
+        if updateUser == True:
             return json.dumps(True)
         else:
             return json.dumps(False)

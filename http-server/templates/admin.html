@@ -1,0 +1,12 @@
+<!doctype html>
+<title>HTTP File Server</title>
+<h1>HTTP File Server</h1>
+<form method=post enctype=multipart/form-data>
+    <input type=file name=file><br>
+    <input type=submit value=Upload>
+</form>
+<hr>
+<h1>Files</h1>
+<ol>{% for file in files %}
+    <li><a href="{{ url_for('download', filename=file) }}">{{ file }}</a></li>
+    {% endfor %}</ol>

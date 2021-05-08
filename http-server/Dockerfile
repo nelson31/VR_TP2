@@ -9,7 +9,11 @@ RUN apt-get update &&\
 # Instalar as dependencias necessarias
 RUN apt-get install -y python3.7
 RUN apt-get install -y python3-pip
+RUN pip3 install Flask
+RUN pip3 install pyjwt
+RUN pip3 install python-dotenv
 RUN pip3 install requests
+RUN pip3 install Werkzeug
 
 # Pacotes adicionais
 RUN apt-get install -y iputils-ping
@@ -21,4 +25,6 @@ COPY . http-server/
 # Correr o http
 CMD [ "python3", "http-server/apphttp.py" ]
 
+# Expor uma porta
+EXPOSE 8888
 

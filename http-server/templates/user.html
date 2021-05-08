@@ -1,0 +1,8 @@
+<!doctype html>
+<title>HTTP File Server</title>
+<h1>HTTP File Server</h1>
+<hr>
+<h1>Files</h1>
+<ol>{% for file in files %}
+    <li><a href="{{ url_for('download', filename=file) }}">{{ file }}</a></li>
+    {% endfor %}</ol>
