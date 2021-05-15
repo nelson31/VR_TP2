@@ -1,11 +1,16 @@
 #!/usr/bin/python3
 
-import os
+import os, sys, datetime
 import requests
+import jwt, json
 from werkzeug.utils import secure_filename
 from flask import Flask, request, url_for, redirect, render_template, make_response, send_from_directory, current_app
+from dotenv import load_dotenv
 
-PORT = 8888
+
+# Carregar algumas variaveis 
+load_dotenv("./http-service/variaveis.env")
+AUTHSECRET = os.getenv('AUTHSECRET')
 
 # Files stored in
 UPLOAD_FOLDER = "/http-server/upDirectory/"
@@ -17,32 +22,31 @@ app = Flask(__name__)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# IP do servidor de autenticacao
+auth_ip = "172.20.0.3"
+# IP do servidor de HTTP
+http_ip = "172.20.0.2"
+# Porta do servidor autenticacao
+auth_port = 5000
+# Porta do servidor HTTP
+http_port = 8888
+
 
 # Check file has an allowed extension
 def allowed_file(filename):
+
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def verifica_login(token):
-
-    try:
-
-        (username, role) = decode_token(token)
-
-    except:
-        return (False,'')
-
-    return (True,role)
 
 
 '''
 Fazer o decoding de um token, retornando o nome do user e o seu papel
 '''
 def decode_token(enctoken):
+
     try:
         payload = jwt.decode(enctoken, AUTHSECRET)
-        return (payload.user, payload.role)
+        return json.loads(payload)
     except jwt.ExpiredSignatureError:
         return 'Signature expired. Please log in again.'
     except jwt.InvalidTokenError:
@@ -53,39 +57,42 @@ def decode_token(enctoken):
 def home():
 
     try:
-        token = request.cookies.get('vr_token')
-        (user,role) = decode_token(token)
+        token = request.cookies.get('token')
+        token_dec = decode_token(token)
 
-        if role == "user":
+        if token_dec["role"] == "user":
             return redirect(url_for('user'))
-        elif role == "admin":
+        elif token_dec["role"] == "admin":
             return redirect(url_for('admin'))
 
     except Exception as e:
-        return redirect('http://0.0.0.0:5000/login?Referer=http://0.0.0.0:' + str(PORT) + '/loginreturn')
+        return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
 
 
 @app.route('/loginreturn', methods=['GET'])
 def loginreturn():
 
     token = request.args.get('token')
+    # Set cookie policy for session cookie.
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
     if not token:
         return redirect(url_for('home'))
     else:
-        resp = make_response(redirect(url_for('admin')))
-        resp.set_cookie('vr_token', token)
-        return resp
+        res = make_response(redirect(url_for('admin')))
+        res.set_cookie("token", token, expires=expires)
+        return res
 
 
 @app.route('/admin', methods=['GET','POST'])
 def admin():
 
     try:
-        token = request.cookies.get('vr_token')
-        (user,role) = decode_token(token)
+        token = request.cookies.get('token')
+        token_dec = decode_token(token)
+        print(token_dec, file=sys.stdout)
 
         # Se for um user, redirecionar para la
-        if role == "user":
+        if token_dec.get("role") == "user":
             return redirect(url_for('user'))
 
     except Exception as e:
@@ -124,10 +131,13 @@ def download(filename):
 @app.route('/user', methods=['GET'])
 def user():
 
-    token = request.cookies.get('vr_token')
+    token = request.cookies.get('token')
+    token_dec = decode_token(token)
 
-    if(not verifica_login(token)):
-        return redirect(url_for('home'))
+    # Se for um user, redirecionar para la
+    if token_dec["role"] == "admin":
+        return redirect(url_for('admin'))
+
 
     # Get Files in the directory and create list items to be displayed to the user
     file_list = []
@@ -139,4 +149,5 @@ def user():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=PORT, debug=True)
+
+    app.run(host='0.0.0.0', port=http_port, debug=True)

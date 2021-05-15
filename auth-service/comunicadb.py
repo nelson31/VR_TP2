@@ -8,6 +8,7 @@ from pymongo import MongoClient
 import pprint
 
 
+# Carregar algumas variaveis 
 load_dotenv("./auth-service/variaveis.env")
 NAME_DB = os.getenv('NAME_DB')
 USERNAME_DB = os.getenv('USERNAME_DB')
@@ -76,24 +77,22 @@ def updateUser(username, password):
 
         # Encontrar um que faca match
         result = mycol.find_one(myquery)
-        print(result)
-        data = json.loads(result)
-        print(data)
 
         # Se o utilizador nao existir, retorna falso
-        if result.matched_count == 0:
+        if len(result.items()) == 0:
             return (False, '')
         else:
-            newvalues = { "$set": { "token": encode_token(username, data.get("role")) } }
+            token = encode_token(username, result['role'])
+            newvalues = { "$set": { "token": token } }
 
             # Fazer o update
             result1 = mycol.update_one(myquery, newvalues)
 
-            return (True, data.get("role"))
+            return (True, token)
 
     except Exception as error:
         print(error)
-        return (False, '')
+        return (False, error)
 
 
 '''

@@ -2,7 +2,7 @@
 
 import os, hashlib
 import comunicadb
-import json
+import json, datetime
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 from flask import Flask, request, flash, session, render_template, redirect, make_response
@@ -10,11 +10,20 @@ from flask import Flask, request, flash, session, render_template, redirect, mak
 
 app = Flask(__name__)
 
+# IP do servidor de autenticacao
+auth_ip = "172.20.0.3"
+# IP do servidor de HTTP
+http_ip = "172.20.0.2"
+# Porta do servidor autenticacao
+auth_port = 5000
+# Porta do servidor HTTP
+http_port = 8888
+
 
 @app.route('/login', methods=('GET', 'POST'))
 def login():
 
-    # Caso seja um pedido de post 
+    # Caso tenha clicado no botao de login
     if(request.form.get("loginbutton")):
       
         username = str(request.form.get("username"))
@@ -26,19 +35,19 @@ def login():
         	return render_template("login.html")
 
         # Update do utilizador, adicionando-lhe o respetivo token
-        (updateUser,role) = comunicadb.updateUser(username, password)
-        # Obter o token
-        token = comunicadb.encode_token(username, role)
+        (updateUser, token) = comunicadb.updateUser(username, password)
+        # Set cookie policy for session cookie.
+        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
 
         # Caso o utilizador seja valido, conceder acesso
         if updateUser == True:
 
-            res = make_response(redirect(redirect_url + '?user=' + username + '&token=' + token))
-            res.set_cookie("vr_token", token)
+            res = make_response(redirect('http://' + http_ip + ':' + str(http_port) + '/loginreturn' + '?token=' + token))
+            res.set_cookie("token", token, expires=expires)
             return res
 
         else:
-            flash("Wrong password or username")
+            flash("Username ou password errados!!")
             return render_template("login.html")
 
     # Caso seja um pedido de get
@@ -46,7 +55,7 @@ def login():
 
         username = str(request.args.get('username'))
         password = hashlib.sha256(request.args.get('password').encode()).hexdigest()
-        (updateUser,role) = comunicadb.updateUser(username,password)
+        (updateUser,token) = comunicadb.updateUser(username,password)
          
         if updateUser == True:
             return json.dumps(True)
@@ -107,4 +116,4 @@ def registaUser():
 
 if __name__ == '__main__':
     app.secret_key = os.urandom(12)
-    app.run(host="0.0.0.0", port=5000,debug=True)
+    app.run(host="0.0.0.0", port=auth_port,debug=True)
