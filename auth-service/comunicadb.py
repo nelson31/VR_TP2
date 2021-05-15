@@ -178,7 +178,7 @@ Fazer o dencoding de um token
 '''
 def decode_token(enctoken):
     try:
-        payload = jwt.decode(enctoken, AUTHSECRET)
+        payload = jwt.decode(enctoken, AUTHSECRET, algorithms=["HS256"])
         return True
     except jwt.ExpiredSignatureError:
         return 'Signature expired. Please log in again.'

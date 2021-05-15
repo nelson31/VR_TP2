@@ -8,10 +8,6 @@ from flask import Flask, request, url_for, redirect, render_template, make_respo
 from dotenv import load_dotenv
 
 
-# Carregar algumas variaveis 
-load_dotenv("./http-service/variaveis.env")
-AUTHSECRET = os.getenv('AUTHSECRET')
-
 # Files stored in
 UPLOAD_FOLDER = "/http-server/upDirectory/"
 
@@ -44,13 +40,10 @@ Fazer o decoding de um token, retornando o nome do user e o seu papel
 '''
 def decode_token(enctoken):
 
-    try:
-        payload = jwt.decode(enctoken, AUTHSECRET)
-        return json.loads(payload)
-    except jwt.ExpiredSignatureError:
-        return 'Signature expired. Please log in again.'
-    except jwt.InvalidTokenError:
-        return 'Invalid token. Please log in again.'
+    payload = jwt.decode(enctoken, 
+        options={"verify_signature": False},
+        algorithms=["HS256"])
+    return payload
 
 
 @app.route('/', methods=['GET','POST'])
@@ -92,7 +85,7 @@ def admin():
         print(token_dec, file=sys.stdout)
 
         # Se for um user, redirecionar para la
-        if token_dec.get("role") == "user":
+        if token_dec["role"] == "user":
             return redirect(url_for('user'))
 
     except Exception as e:
