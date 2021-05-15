@@ -20,6 +20,9 @@ auth_port = 5000
 http_port = 8888
 
 
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /login
+'''
 @app.route('/login', methods=('GET', 'POST'))
 def login():
 
@@ -37,13 +40,12 @@ def login():
         # Update do utilizador, adicionando-lhe o respetivo token
         (updateUser, token) = comunicadb.updateUser(username, password)
         # Set cookie policy for session cookie.
-        expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
+        #expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
 
         # Caso o utilizador seja valido, conceder acesso
         if updateUser == True:
 
             res = make_response(redirect('http://' + http_ip + ':' + str(http_port) + '/validaLogin' + '?token=' + token))
-            res.set_cookie("token", token, expires=expires)
             return res
 
         else:
@@ -70,6 +72,9 @@ def login():
     return render_template("login.html")
 
 
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /verificaToken
+'''
 @app.route("/verificaToken", methods=["GET"])
 def verificaToken():
 
@@ -85,12 +90,14 @@ def verificaToken():
         return "No Token in there"
 
 
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /registaUser
+'''
 @app.route('/registaUser', methods=['GET','POST'])
 def registaUser():
 
 	# Quando o pedido for efetuado
     if request.method == 'POST':
-
         if(request.form.get("registerbutton")):
 
             username = str(request.form.get("username"))
