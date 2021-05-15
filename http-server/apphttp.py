@@ -13,8 +13,8 @@ app = Flask(__name__)
 # LOcalizacao dos ficheiros relativos a aplicacao
 UPDIRECTORY = "/http-server/upDirectory/"
 
-# Allowed files extensions for upload
-ALLOWED_EXTENSIONS = set(['pdf', 'png', 'txt'])
+# Extensoes permitidas para o download de ficheiros 
+EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg'])
 
 app.config['UPDIRECTORY'] = UPDIRECTORY
 
@@ -32,7 +32,7 @@ http_port = 8888
 def allowed_file(filename):
 
     return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+        filename.rsplit('.', 1)[1].lower() in EXTENSIONS
 
 
 '''
@@ -51,36 +51,59 @@ def decode_token(enctoken):
         return 'Invalid token. Please log in again.'
 
 
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /download/<path:filename>
+(Usado aquando de um download de um ficheiro)
+'''
+@app.route('/download/<path:filename>', methods=['GET', 'POST'])
+def download(filename):
+
+    uploads = os.path.join(app.config['UPDIRECTORY'])
+    return send_from_directory(directory=uploads, filename=filename)
+
+
+'''
+Funcao usada para validar os resultados que advem do login
+'''
+@app.route('/validaLogin', methods=['GET'])
+def validaLogin():
+
+    token = request.args.get('token')
+    # Set cookie policy for session cookie.
+    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
+    # Se o token nao for valido, redirecionar para a home
+    if not token:
+        return redirect(url_for('home'))
+    else:
+        # Redirecionar para o admin de modo a verificar se e administrador
+        res = make_response(redirect(url_for('admin')))
+        res.set_cookie("token", token, expires=expires)
+        return res
+
+
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /
+'''
 @app.route('/', methods=['GET','POST'])
 def home():
 
     try:
         token = request.cookies.get('token')
         token_dec = decode_token(token)
-
+        # Verificar se estamos perante um user ou um admin, 
+        # senao houver token ira ser redirecionado para o login na autenticacao
         if token_dec["role"] == "user":
             return redirect(url_for('user'))
         elif token_dec["role"] == "admin":
             return redirect(url_for('admin'))
 
-    except Exception as e:
+    except Exception as error:
         return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
 
 
-@app.route('/loginreturn', methods=['GET'])
-def loginreturn():
-
-    token = request.args.get('token')
-    # Set cookie policy for session cookie.
-    expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
-    if not token:
-        return redirect(url_for('home'))
-    else:
-        res = make_response(redirect(url_for('admin')))
-        res.set_cookie("token", token, expires=expires)
-        return res
-
-
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /admin
+'''
 @app.route('/admin', methods=['GET','POST'])
 def admin():
 
@@ -91,7 +114,8 @@ def admin():
         if token_dec["role"] == "user":
             return redirect(url_for('user'))
 
-    except Exception as e:
+    except Exception as error:
+        # Redirecionado para a home caso nao tenha token
         return redirect(url_for('home'))
 
     # If a post method then handle file upload
@@ -116,21 +140,20 @@ def admin():
     return render_template("admin.html", files=file_list)
 
 
-@app.route('/download/<path:filename>', methods=['GET', 'POST'])
-def download(filename):
-
-    uploads = os.path.join(app.config['UPDIRECTORY'])
-    return send_from_directory(directory=uploads, filename=filename)
-
-
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /user
+'''
 @app.route('/user', methods=['GET'])
 def user():
 
-    token = request.cookies.get('token')
-    token_dec = decode_token(token)
-    # Se for um user, redirecionar para la
-    if token_dec["role"] == "admin":
-        return redirect(url_for('admin'))
+    try:
+        token = request.cookies.get('token')
+        token_dec = decode_token(token)
+        # Se for um user, redirecionar para la
+        if token_dec["role"] == "admin":
+            return redirect(url_for('admin'))
+    except Exception as error:
+        return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
     # Get Files in the directory and create list items to be displayed to the user
     file_list = []
     for f in os.listdir(app.config['UPDIRECTORY']):
@@ -138,6 +161,22 @@ def user():
         file_list.append(f)
 
     return render_template("user.html", files=file_list)
+
+
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /
+'''
+@app.route('/logout', methods=['POST'])
+def logout():
+
+    try:
+        res = make_response(redirect(url_for('home')))
+        # Apagar o token
+        res.set_cookie('token', '', expires=0)
+        return res
+
+    except Exception as error:
+        return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
 
 
 if __name__ == '__main__':

@@ -42,7 +42,7 @@ def login():
         # Caso o utilizador seja valido, conceder acesso
         if updateUser == True:
 
-            res = make_response(redirect('http://' + http_ip + ':' + str(http_port) + '/loginreturn' + '?token=' + token))
+            res = make_response(redirect('http://' + http_ip + ':' + str(http_port) + '/validaLogin' + '?token=' + token))
             res.set_cookie("token", token, expires=expires)
             return res
 
@@ -73,7 +73,7 @@ def login():
 @app.route("/verificaToken", methods=["GET"])
 def verificaToken():
 
-    # verify the token 
+    # verificar o token 
     if(request.args.get('token')):
         validtoken = comunicadb.decode_token(request.args.get('token'))
         if(validtoken == True):
@@ -88,8 +88,7 @@ def verificaToken():
 @app.route('/registaUser', methods=['GET','POST'])
 def registaUser():
 
-    referrer = request.headers.get("Referer")
-    print("Aparece  " + str(referrer))
+	# Quando o pedido for efetuado
     if request.method == 'POST':
 
         if(request.form.get("registerbutton")):

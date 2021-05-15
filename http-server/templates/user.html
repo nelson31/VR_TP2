@@ -1,8 +1,19 @@
-<!doctype html>
+<link rel="stylesheet" href="/static/style.css" type="text/css">
+
+<body>
 <title>HTTP File Server</title>
 <h1>HTTP File Server</h1>
 <hr>
-<h1>Files</h1>
+<h1>Ficheiros Disponiveis</h1>
 <ol>{% for file in files %}
-    <li><a href="{{ url_for('download', filename=file) }}">{{ file }}</a></li>
-    {% endfor %}</ol>
+    <li>
+    	<span>
+    		<a href="{{ url_for('download', filename=file) }}">{{ file }}</a>
+    	</span>
+    </li>
+    {% endfor %}
+</ol>
+<form action="/logout" method="POST" id="form">
+	<input type="submit" name="logoutbutton" value="logout"/>
+</form>
+</body>

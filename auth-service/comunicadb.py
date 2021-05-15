@@ -117,11 +117,40 @@ def obterToken(username, password):
         if result.matched_count == 0:
             return (False, '')
         else:
-            return (True, result.token)
+            return (True, result['token'])
 
     except Exception as error:
         print(error)
         return (False, '')
+
+
+'''
+Usado para apagar o token de um dado utilizador
+'''
+def apagarToken(username, password):
+
+    try:
+        myclient = MongoClient(uri)
+        # Obter a base de dados
+        mydb = myclient[NAME_DB]
+        # Obter a coluna a alterar
+        mycol = mydb["users"]
+        
+        myquery = { "username": username, "password": password }
+        # Encontrar um que faca match
+        result = mycol.find_one(myquery)
+        # Se o utilizador nao existir, retorna falso
+        if result.matched_count == 0:
+            return False
+        else:
+            newvalues = { "$set": { "token": None } }
+            # Fazer o update
+            result1 = mycol.update_one(myquery, newvalues)
+            return True
+
+    except Exception as error:
+        print(error)
+        return False
 
 
 '''
@@ -146,13 +175,13 @@ def verificaUser(username, password):
         if result.matched_count == 0:
             return (False, '')
         else:
-            return (True, result.role)
+            return (True, result['role'])
 
     except Exception as error:
         print(error)
         return (False, '')
 
-    return (True, result.role)
+    return (True, result['role'])
 
 
 '''
