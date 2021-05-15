@@ -8,15 +8,15 @@ from flask import Flask, request, url_for, redirect, render_template, make_respo
 from dotenv import load_dotenv
 
 
-# Files stored in
-UPLOAD_FOLDER = "/http-server/upDirectory/"
+app = Flask(__name__)
+
+# LOcalizacao dos ficheiros relativos a aplicacao
+UPDIRECTORY = "/http-server/upDirectory/"
 
 # Allowed files extensions for upload
 ALLOWED_EXTENSIONS = set(['pdf', 'png', 'txt'])
 
-app = Flask(__name__)
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPDIRECTORY'] = UPDIRECTORY
 
 # IP do servidor de autenticacao
 auth_ip = "172.20.0.3"
@@ -40,10 +40,15 @@ Fazer o decoding de um token, retornando o nome do user e o seu papel
 '''
 def decode_token(enctoken):
 
-    payload = jwt.decode(enctoken, 
-        options={"verify_signature": False},
-        algorithms=["HS256"])
-    return payload
+    try:
+        payload = jwt.decode(enctoken, 
+            options={"verify_signature": False}, 
+            algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
 
 
 @app.route('/', methods=['GET','POST'])
@@ -82,8 +87,6 @@ def admin():
     try:
         token = request.cookies.get('token')
         token_dec = decode_token(token)
-        print(token_dec, file=sys.stdout)
-
         # Se for um user, redirecionar para la
         if token_dec["role"] == "user":
             return redirect(url_for('user'))
@@ -102,12 +105,11 @@ def admin():
 
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
+            file.save(os.path.join(app.config['UPDIRECTORY'], filename))
 
     # Get Files in the directory and create list items to be displayed to the user
     file_list = []
-    for f in os.listdir(app.config['UPLOAD_FOLDER']):
+    for f in os.listdir(app.config['UPDIRECTORY']):
         # Create link html
         file_list.append(f)
 
@@ -117,7 +119,7 @@ def admin():
 @app.route('/download/<path:filename>', methods=['GET', 'POST'])
 def download(filename):
 
-    uploads = os.path.join(app.config['UPLOAD_FOLDER'])
+    uploads = os.path.join(app.config['UPDIRECTORY'])
     return send_from_directory(directory=uploads, filename=filename)
 
 
@@ -126,15 +128,12 @@ def user():
 
     token = request.cookies.get('token')
     token_dec = decode_token(token)
-
     # Se for um user, redirecionar para la
     if token_dec["role"] == "admin":
         return redirect(url_for('admin'))
-
-
     # Get Files in the directory and create list items to be displayed to the user
     file_list = []
-    for f in os.listdir(app.config['UPLOAD_FOLDER']):
+    for f in os.listdir(app.config['UPDIRECTORY']):
         # Create link html
         file_list.append(f)
 
