@@ -5,6 +5,13 @@ body {
   font-size: 1.2em;
 }
 
+.lista {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
 .lista ol {
   list-style: none;
   counter-reset: any-name;
@@ -31,13 +38,27 @@ body {
 }
 
 .lista input[type=submit] {
-  background: #006699;
-  color: #ffffff;
-  font-size: 1.5em;
+    background: #006699;
+    color: #ffffff;
+    font-size: 1.5em;
+    cursor: pointer;
+    margin-left: 40px;
 }
 
 .lista input[type="submit"].btn:hover {
-  border: 1px solid black;
+    border: 1px solid black;
+    letter-spacing: 4px;
 }
 
+.lista input[type=file] {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.lista input[name="logoutbutton"] {
+    margin-top: 25px;
+}
 
