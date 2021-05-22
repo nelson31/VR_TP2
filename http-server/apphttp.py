@@ -28,11 +28,13 @@ auth_port = 5000
 http_port = 8888
 
 
-# Check file has an allowed extension
-def allowed_file(filename):
+'''
+Verifica se a extensao do ficheiro se encontra dentro das extensoes permitidas
+'''
+def isValidFile(file):
 
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in EXTENSIONS
+    return '.' in file and \
+        file.rsplit('.', 1)[1].lower() in EXTENSIONS
 
 
 '''
@@ -52,14 +54,69 @@ def decode_token(enctoken):
 
 
 '''
+Usado para verificar a existencia e validade de um token
+'''
+def verificaToken(token):
+
+    # Verificar se o token existe nos cookies
+    try:
+        token_dec = decode_token(token)
+        payload = {'username': token_dec["user"], 'token': token}
+        # Verificar se e o mesmo que esta na base de dados
+        result = requests.post('http://' + auth_ip + ':' + str(auth_port) + '/verificaToken', data=json.dumps(payload))
+        return result.status_code == requests.codes.ok
+
+    except Exception as e:
+        return False
+
+
+'''
 Funcao usada para proceder ao tratamento das operacoes relativas ao path /download/<path:filename>
 (Usado aquando de um download de um ficheiro)
 '''
 @app.route('/download/<path:filename>', methods=['GET', 'POST'])
 def download(filename):
 
-    uploads = os.path.join(app.config['UPDIRECTORY'])
-    return send_from_directory(directory=uploads, filename=filename)
+    try:
+        # Buscar o token que esta nos cookies
+        token = request.cookies.get('token')
+        # Verificar se o token existe e e valido
+        if verificaToken(token) == False:
+            return redirect(url_for('home'))
+        ficheiros = os.path.join(app.config['UPDIRECTORY'])
+        return send_from_directory(directory=ficheiros, filename=filename)
+
+    except Exception as e:
+        return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
+
+
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /upload
+(Usado aquando de um upload de um ficheiro)
+'''
+@app.route('/upload', methods=['POST'])
+def upload():
+
+    try:
+        # Buscar o token que esta nos cookies
+        token = request.cookies.get('token')
+        # Verificar se o token existe e e valido
+        if verificaToken(token) == False:
+            return redirect(url_for('home'))
+        # Verificar se 'file' esta no pedido
+        if 'file' not in request.files:
+            return redirect(url_for('home'))
+        # Pegar no ficheiro
+        f = request.files['file']
+
+        # Efetuar o upload do ficheiro
+        if f and isValidFile(f.filename):
+            filename = secure_filename(f.filename)
+            f.save(os.path.join(app.config['UPDIRECTORY'], filename))
+        return redirect(url_for('home'))
+
+    except Exception as e:
+        return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
 
 
 '''
@@ -69,6 +126,9 @@ Funcao usada para validar os resultados que advem do login
 def validaLogin():
 
     token = request.args.get('token')
+    # Verificar se o token existe e e valido
+    if verificaToken(token) == False:
+        return redirect(url_for('home'))
     # Set cookie policy for session cookie.
     expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=30, seconds=0)
     # Se o token nao for valido, redirecionar para a home
@@ -88,7 +148,11 @@ Funcao usada para proceder ao tratamento das operacoes relativas ao path /
 def home():
 
     try:
+        # Buscar o token que esta nos cookies
         token = request.cookies.get('token')
+        # Verificar se o token existe e e valido
+        if verificaToken(token) == False:
+            return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
         token_dec = decode_token(token)
         # Verificar se estamos perante um user ou um admin, 
         # senao houver token ira ser redirecionado para o login na autenticacao
@@ -108,7 +172,11 @@ Funcao usada para proceder ao tratamento das operacoes relativas ao path /admin
 def admin():
 
     try:
+        # Buscar o token que esta nos cookies
         token = request.cookies.get('token')
+        # Verificar se o token existe e e valido
+        if verificaToken(token) == False:
+            return redirect(url_for('home'))
         token_dec = decode_token(token)
         # Se for um user, redirecionar para la
         if token_dec["role"] == "user":
@@ -118,23 +186,9 @@ def admin():
         # Redirecionado para a home caso nao tenha token
         return redirect(url_for('home'))
 
-    # If a post method then handle file upload
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            return redirect('/')
-        file = request.files['file']
-
-        if file.filename == '':
-            return redirect('/')
-
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPDIRECTORY'], filename))
-
-    # Get Files in the directory and create list items to be displayed to the user
+    # Obter a lista de ficheiros que esta na pasta upDirectory
     file_list = []
     for f in os.listdir(app.config['UPDIRECTORY']):
-        # Create link html
         file_list.append(f)
 
     return render_template("admin.html", files=file_list)
@@ -147,7 +201,11 @@ Funcao usada para proceder ao tratamento das operacoes relativas ao path /user
 def user():
 
     try:
+        # Buscar o token que esta nos cookies
         token = request.cookies.get('token')
+        # Verificar se o token existe e e valido
+        if verificaToken(token) == False:
+            return redirect(url_for('home'))
         token_dec = decode_token(token)
         # Se for um user, redirecionar para la
         if token_dec["role"] == "admin":

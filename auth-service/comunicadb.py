@@ -20,7 +20,6 @@ PORTA = 27017
 uri = "mongodb://%s:%s@%s:%d" % (
     USERNAME_DB, PASSWORD_DB, HOST, PORTA)
 
-print(AUTHSECRET)
 
 '''
 Funcao usada para registar um novo utilizador
@@ -96,9 +95,9 @@ def updateUser(username, password):
 
 
 '''
-Usado para obter o token
+Usado para verificar se um determinado token existe para um determinado user
 '''
-def obterToken(username, password):
+def existToken(username, token):
 
     try:
         
@@ -108,20 +107,19 @@ def obterToken(username, password):
         # Obter a coluna a alterar
         mycol = mydb["users"]
         
-        myquery = { "username": username, "password": password }
+        myquery = { "username": username, "token": token }
 
         # Encontrar um que faca match
         result = mycol.find_one(myquery)
 
         # Se o utilizador nao existir, retorna falso
-        if result.matched_count == 0:
-            return (False, '')
+        if result == None:
+            return False
         else:
-            return (True, result['token'])
+            return True
 
     except Exception as error:
-        print(error)
-        return (False, '')
+        return False
 
 
 '''
@@ -140,7 +138,7 @@ def apagarToken(username, password):
         # Encontrar um que faca match
         result = mycol.find_one(myquery)
         # Se o utilizador nao existir, retorna falso
-        if result.matched_count == 0:
+        if result == None:
             return False
         else:
             newvalues = { "$set": { "token": None } }
@@ -172,7 +170,7 @@ def verificaUser(username, password):
         result = mycol.find_one(myquery)
 
         # Se o utilizador nao existir, retorna falso
-        if result.matched_count == 0:
+        if result == None:
             return (False, '')
         else:
             return (True, result['role'])

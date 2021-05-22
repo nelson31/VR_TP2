@@ -5,7 +5,8 @@ import comunicadb
 import json, datetime
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
-from flask import Flask, request, flash, session, render_template, redirect, make_response
+from urllib.error import HTTPError
+from flask import Flask, request, abort, flash, session, render_template, redirect, make_response
 
 
 app = Flask(__name__)
@@ -75,19 +76,25 @@ def login():
 '''
 Funcao usada para proceder ao tratamento das operacoes relativas ao path /verificaToken
 '''
-@app.route("/verificaToken", methods=["GET"])
+@app.route("/verificaToken", methods=['POST'])
 def verificaToken():
 
-    # verificar o token 
-    if(request.args.get('token')):
-        validtoken = comunicadb.decode_token(request.args.get('token'))
-        if(validtoken == True):
-            return json.dumps(True)
-        else:
-            return validtoken
-
-    else:
-        return "No Token in there"
+	data = request.get_json(force=True)
+	username = data['username']
+	token = data['token']
+	#f = open("logs.txt", "w")
+	#f.write(username)
+	#f.write("\n")
+	#f.write(token)
+	#f.close()
+	# verificar o token 
+	res = comunicadb.existToken(username, token)
+	if res == True:
+		# Retorna ok
+		return make_response("ok", 200)
+	else:
+		# Retorna erro
+		return make_response("erro", 404)
 
 
 '''
@@ -98,7 +105,7 @@ def registaUser():
 
 	# Quando o pedido for efetuado
     if request.method == 'POST':
-        if(request.form.get("registerbutton")):
+        if request.form.get("registerbutton"):
 
             username = str(request.form.get("username"))
             password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
@@ -114,7 +121,7 @@ def registaUser():
 
             return redirect("/login")
 
-        if(request.form.get("loginbutton")):
+        if request.form.get("loginbutton"):
             return redirect("/login")
 
     return render_template("register.html")

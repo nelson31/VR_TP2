@@ -48,6 +48,8 @@ networks:
 
 volumes:
   mongo-vol:
+    driver: local
   http_ftp-vol:
+    driver: local
     
 
