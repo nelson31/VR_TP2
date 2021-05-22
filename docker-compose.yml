@@ -10,6 +10,7 @@ services:
         - auth-mongo
       volumes:
         - mongo-vol:/data/db
+        - /home/vagrant/VR_TP2/logs/db:/home/logs
 
     auth-service:
       container_name: auth_container
@@ -20,6 +21,8 @@ services:
         - auth-mongo
         - auth-ftp
         - auth-http
+      volumes:
+        - /home/vagrant/VR_TP2/logs/auth:/auth-service/logs
 
     http-service:
       container_name: http_container
@@ -30,6 +33,7 @@ services:
         - "8888:8888"
       volumes:
         - http_ftp-vol:/usr/src/http
+        - /home/vagrant/VR_TP2/logs/http:/http-service/logs
 
     ftp-service:
       container_name: ftp_container
@@ -40,6 +44,7 @@ services:
         - "21:21"
       volumes:
         - http_ftp-vol:/usr/src/ftp
+        - /home/vagrant/VR_TP2/logs/ftp:/ftp-service/logs
 
 networks: 
     auth-mongo:

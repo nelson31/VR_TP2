@@ -87,7 +87,7 @@ def verificaToken():
 	#f.write("\n")
 	#f.write(token)
 	#f.close()
-	# verificar o token 
+	# verificar o token se existe na db
 	res = comunicadb.existToken(username, token)
 	if res == True:
 		# Retorna ok

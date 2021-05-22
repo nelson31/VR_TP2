@@ -201,14 +201,16 @@ def encode_token(username, role):
 
 
 '''
-Fazer o dencoding de um token
+Fazer o decoding de um token
 '''
 def decode_token(enctoken):
+
     try:
-        payload = jwt.decode(enctoken, AUTHSECRET, algorithms=["HS256"])
-        return True
+        payload = jwt.decode(enctoken, 
+            options={"verify_signature": False}, 
+            algorithms=["HS256"])
+        return payload
     except jwt.ExpiredSignatureError:
         return 'Signature expired. Please log in again.'
     except jwt.InvalidTokenError:
         return 'Invalid token. Please log in again.'
-    
