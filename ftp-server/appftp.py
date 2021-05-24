@@ -3,7 +3,7 @@ from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.authorizers import AuthenticationFailed
-import sys, requests
+import sys, requests, json
 
 
 # Path para a pasta de uploads
@@ -12,34 +12,34 @@ UPDIRECTORY = "/usr/src/ftp/"
 
 class MyAuthorizer(DummyAuthorizer):
 
-    def validate_authentication(self, username, password, handler):
+	def validate_authentication(self, username, password, handler):
 
-        #Testa se o user é valido com o auth server
-        payload = {'username': username, 'password': password}
-        # Verificar se existe
-        x = requests.post('http://auth_container:5000/loginFTP', data=json.dumps(payload))
-        if x.status_code == requests.codes.ok:
-            valid = True
-        else:
-            valid = False
-        # Se for valido
-        if valid:
-            #create a new user with the token as the username and blanck password (perm é usado para permissoes)
-            self.add_user(username, password, UPDIRECTORY, perm='elradfmwM')
-            #return True
-        else:
-            raise AuthenticationFailed("Invalid Token")
-            return False
+		#Testa se o user é valido com o auth server
+		payload = {'username': username, 'password': password}
+		# Verificar se existe
+		x = requests.post('http://auth_container:5000/loginFTP', data=json.dumps(payload))
+		if x.status_code == requests.codes.ok:
+			valid = True
+		else:
+			valid = False
+		# Se for valido
+		if valid:
+			#create a new user with the token as the username and blanck password (perm é usado para permissoes)
+			self.add_user(username, '.', UPDIRECTORY, perm='elradfmwM')
+			#return True
+		else:
+			raise AuthenticationFailed("Invalid Token")
+			return False
 
 
 class MyHandler(FTPHandler):
 
-    def on_disconnect(self):
+	def on_disconnect(self):
 
-        #remove user on disconect as token may no longer be valid
-        if authorizer.has_user(self.username):
-            print("removing user: "+self.username)
-            authorizer.remove_user(self.username)
+		#remove user on disconect as token may no longer be valid
+		if authorizer.has_user(self.username):
+			print("removing user: "+self.username)
+			authorizer.remove_user(self.username)
 
 
 def config():
@@ -47,9 +47,11 @@ def config():
 	# Objeto responsavel pela autenticação dos utilizadores e suas respectivas permissoes
 	authorizer = MyAuthorizer()
 	print("Local de acesso do servidor : \n  " + UPDIRECTORY + '\n')
+	# Usado para permitir conexoes externas
+	FTPHandler.permit_foreign_addresses = True
 
 	# objeto que manipula os comandos enviados pelo cliente FTP
-	handler = MyHandler
+	handler = FTPHandler
 	# Responsavel pela autenticacao do servidor
 	handler.authorizer = authorizer
 
