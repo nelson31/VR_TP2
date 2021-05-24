@@ -1,15 +1,29 @@
+#!/usr/bin/python3
+
+"""
+Aplicacao que simula um servidor FTP em Python que sera usado como um microservico
+em containers Docker
+
+Copyright (c) 2021 Universidade do Minho
+Perfil GVR - Virtualizacao de Redes 2020/21
+Desenvolvido por: Nelson Faria (a84727@alunos.uminho.pt)
+"""
+
 from pyftpdlib import servers
 from pyftpdlib.handlers import FTPHandler
-from pyftpdlib.servers import FTPServer
+#from pyftpdlib.servers import FTPServer
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.authorizers import AuthenticationFailed
+from pyftpdlib.servers import MultiprocessFTPServer
 import sys, requests, json
 
 
 # Path para a pasta de uploads
 UPDIRECTORY = "/usr/src/ftp/"
 
-
+'''
+Classe que serve para definir as politicas de autorizacao do servidor ftp
+'''
 class MyAuthorizer(DummyAuthorizer):
 
 	def validate_authentication(self, username, password, handler):
@@ -24,7 +38,7 @@ class MyAuthorizer(DummyAuthorizer):
 			valid = False
 		# Se for valido
 		if valid:
-			#create a new user with the token as the username and blanck password (perm é usado para permissoes)
+			# adiciona um novo user (perm é usado para definir as permissoes)
 			self.add_user(username, '.', UPDIRECTORY, perm='elradfmwM')
 			#return True
 		else:
@@ -32,6 +46,9 @@ class MyAuthorizer(DummyAuthorizer):
 			return False
 
 
+'''
+Classe que serve para definir o Handler para o FTP server
+'''
 class MyHandler(FTPHandler):
 
 	def on_disconnect(self):
@@ -42,16 +59,19 @@ class MyHandler(FTPHandler):
 			authorizer.remove_user(self.username)
 
 
-def config():
+'''
+Configuracoes especiais para o handler FTP como a autenticacao
+'''
+def configHandler():
 
 	# Objeto responsavel pela autenticação dos utilizadores e suas respectivas permissoes
 	authorizer = MyAuthorizer()
 	print("Local de acesso do servidor : \n  " + UPDIRECTORY + '\n')
 	# Usado para permitir conexoes externas
-	FTPHandler.permit_foreign_addresses = True
+	MyHandler.permit_foreign_addresses = True
 
 	# objeto que manipula os comandos enviados pelo cliente FTP
-	handler = FTPHandler
+	handler = MyHandler
 	# Responsavel pela autenticacao do servidor
 	handler.authorizer = authorizer
 
@@ -60,15 +80,17 @@ def config():
 
 def main(arg):
 	
-	handler = config()
-	porta = 2121 # porta padrão do servidor
+	handler = configHandler()
+	# porta padrão do servidor
+	porta = 2121
+	# ip onde o servidor estara a escuta de conexoes
 	if len(arg) == 1:
-		ip = "0.0.0.0" # ip padrão do servidor
+		ip = "0.0.0.0"
 	else:
 		ip = arg[1]
 	
 	# servidor
-	server = FTPServer((ip,porta),handler)
+	server = MultiprocessFTPServer((ip,porta),handler)
 	#inicia o servidor
 	server.serve_forever()
 

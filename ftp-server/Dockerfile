@@ -22,6 +22,7 @@ COPY . ftp-server/
 # Correr o ftp
 CMD [ "python3", "ftp-server/appftp.py" ]
 
-
+# Expor uma porta
+EXPOSE 2121
 
   

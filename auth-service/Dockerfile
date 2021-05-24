@@ -22,7 +22,7 @@ RUN apt-get install -y net-tools
 COPY . auth-service/
 
 # Correr o Flask
-CMD [ "python3", "auth-service/appflask.py" ]
+CMD [ "python3", "auth-service/appauth.py" ]
 
 # Expor uma porta
 EXPOSE 5000
