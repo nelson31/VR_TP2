@@ -22,7 +22,7 @@ services:
         - auth-ftp
         - auth-http
       volumes:
-        - /home/vagrant/VR_TP2/logs/auth:/auth-service/logs
+        - /home/vagrant/VR_TP2/logs/auth:/auth-server/logs
 
     http-service:
       container_name: http_container
@@ -33,7 +33,7 @@ services:
         - "8888:8888"
       volumes:
         - http_ftp-vol:/usr/src/http
-        - /home/vagrant/VR_TP2/logs/http:/http-service/logs
+        - /home/vagrant/VR_TP2/logs/http:/http-server/logs
 
     ftp-service:
       container_name: ftp_container
@@ -41,10 +41,10 @@ services:
       networks:
         - auth-ftp
       ports:
-        - "21:21"
+        - "2121:2121"
       volumes:
         - http_ftp-vol:/usr/src/ftp
-        - /home/vagrant/VR_TP2/logs/ftp:/ftp-service/logs
+        - /home/vagrant/VR_TP2/logs/ftp:/ftp-server/logs
 
 networks: 
     auth-mongo:

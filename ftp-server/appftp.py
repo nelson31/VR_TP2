@@ -15,16 +15,18 @@ class MyAuthorizer(DummyAuthorizer):
     def validate_authentication(self, username, password, handler):
 
         #Testa se o user é valido com o auth server
-        #payload = {'username': username, 'password': password}
+        payload = {'username': username, 'password': password}
         # Verificar se existe
-        #x = requests.post('http://auth_container:5000/login', data=json.dumps(payload))
-        x = requests.get("http://auth_container:5000/login?username=" + username + "&password=" + password)
-        if x.text == "true":
+        x = requests.post('http://auth_container:5000/loginFTP', data=json.dumps(payload))
+        if x.status_code == requests.codes.ok:
             valid = True
+        else:
+            valid = False
         # Se for valido
         if valid:
             #create a new user with the token as the username and blanck password (perm é usado para permissoes)
-            self.add_user(username, ".", UPDIRECTORY, perm='elradfmwM')
+            self.add_user(username, password, UPDIRECTORY, perm='elradfmwM')
+            #return True
         else:
             raise AuthenticationFailed("Invalid Token")
             return False
@@ -57,9 +59,9 @@ def config():
 def main(arg):
 	
 	handler = config()
-	porta = 21 # porta padrão do servidor
+	porta = 2121 # porta padrão do servidor
 	if len(arg) == 1:
-		ip = "172.20.0.1" # ip padrão do servidor
+		ip = "0.0.0.0" # ip padrão do servidor
 	else:
 		ip = arg[1]
 	

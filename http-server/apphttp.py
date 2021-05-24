@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 
 app = Flask(__name__)
 
-# LOcalizacao dos ficheiros relativos a aplicacao
-UPDIRECTORY = "/http-server/upDirectory/"
+# LOcalizacao dos ficheiros relativos a aplicacao(ficam no volume docker)
+UPDIRECTORY = "/usr/src/http"
 
 # Extensoes permitidas para o download de ficheiros 
 EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg'])
@@ -186,7 +186,7 @@ def admin():
         # Redirecionado para a home caso nao tenha token
         return redirect(url_for('home'))
 
-    # Obter a lista de ficheiros que esta na pasta upDirectory
+    # Obter a lista de ficheiros que esta na pasta de uploads
     file_list = []
     for f in os.listdir(app.config['UPDIRECTORY']):
         file_list.append(f)
@@ -212,10 +212,10 @@ def user():
             return redirect(url_for('admin'))
     except Exception as error:
         return redirect('http://' + auth_ip + ':' + str(auth_port) + '/login')
-    # Get Files in the directory and create list items to be displayed to the user
+    # Criar a lista de ficheiros a serem mostrados para o user
     file_list = []
     for f in os.listdir(app.config['UPDIRECTORY']):
-        # Create link html
+        # Cria o link html
         file_list.append(f)
 
     return render_template("user.html", files=file_list)

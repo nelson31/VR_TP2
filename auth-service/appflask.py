@@ -24,7 +24,7 @@ http_port = 8888
 '''
 Funcao usada para proceder ao tratamento das operacoes relativas ao path /login
 '''
-@app.route('/login', methods=('GET', 'POST'))
+@app.route('/login', methods=['GET','POST'])
 def login():
 
     # Caso tenha clicado no botao de login
@@ -53,24 +53,32 @@ def login():
             flash("Username ou password errados!!")
             return render_template("login.html")
 
-    # Caso seja um pedido de get
-    if(request.args.get('username')):
-
-        username = str(request.args.get('username'))
-        password = hashlib.sha256(request.args.get('password').encode()).hexdigest()
-        (updateUser,token) = comunicadb.updateUser(username,password)
-         
-        if updateUser == True:
-            return json.dumps(True)
-        else:
-            return json.dumps(False)
-
     # Se o utilizador clicou no botao regista, entao redirecionar para la!!
     if(request.form.get("registerbutton")):
 
         return redirect("/registaUser")
 
     return render_template("login.html")
+
+
+'''
+Funcao usada para proceder ao tratamento das operacoes relativas ao path /loginFTP
+(Este login so e usado no ambito do servidor ftp)
+'''
+@app.route('/loginFTP', methods=['POST'])
+def loginFTP():
+
+	data = request.get_json(force=True)
+	username = data['username']
+	password = hashlib.sha256(data['password'].encode()).hexdigest()
+	# Update do utilizador, adicionando-lhe o respetivo token
+	(updateUser,token) = comunicadb.updateUser(username,password)
+	if updateUser == True:
+		# Retorna ok
+		return make_response("ok", 200)
+	else:
+		# Retorna erro
+		return make_response("erro", 404)
 
 
 '''
