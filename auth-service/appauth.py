@@ -1,5 +1,14 @@
 #!/usr/bin/python3
 
+"""
+Aplicacao que simula um servidor de autenticacao em Python que sera usado como 
+um microservico em containers Docker
+
+Copyright (c) 2021 Universidade do Minho
+Perfil GVR - Virtualizacao de Redes 2020/21
+Desenvolvido por: Nelson Faria (a84727@alunos.uminho.pt)
+"""
+
 import os, hashlib
 import comunicadb
 import json, datetime
