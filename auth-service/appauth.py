@@ -84,7 +84,7 @@ def loginFTP():
 	(updateUser,token) = comunicadb.updateUser(username,password)
 	if updateUser == True:
 		# Retorna ok
-		return make_response("ok", 200)
+		return make_response(token, 200)
 	else:
 		# Retorna erro
 		return make_response("erro", 404)

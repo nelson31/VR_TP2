@@ -15,11 +15,28 @@ from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.authorizers import AuthenticationFailed
 from pyftpdlib.servers import MultiprocessFTPServer
-import sys, requests, json
+import sys, requests, json, jwt
 
 
 # Path para a pasta de uploads
 UPDIRECTORY = "/usr/src/ftp/"
+
+
+'''
+Fazer o decoding de um token, retornando o nome do user e o seu papel
+'''
+def decode_token(enctoken):
+
+    try:
+        payload = jwt.decode(enctoken, 
+            options={"verify_signature": False}, 
+            algorithms=["HS256"])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
 
 '''
 Classe que serve para definir as politicas de autorizacao do servidor ftp
@@ -30,16 +47,44 @@ class MyAuthorizer(DummyAuthorizer):
 
 		#Testa se o user é valido com o auth server
 		payload = {'username': username, 'password': password}
+		try:
+			# Verificar se existe
+			x = requests.post('http://auth_container:5000/loginFTP', data=json.dumps(payload))
+			if x.status_code == requests.codes.ok:
+				f = open("logs.txt", "w")
+				f.write("\n")
+				f.write(x.text)
+				f.write("\n")
+				f.close()
+				# Descodificar o token
+				token_dec = decode_token(x.text)
+				valid = True
+			else:
+				valid = False
+		except Exception as e:
+			valid = False
+
 		# Verificar se existe
 		x = requests.post('http://auth_container:5000/loginFTP', data=json.dumps(payload))
 		if x.status_code == requests.codes.ok:
+			f = open("logs.txt", "w")
+			f.write("\n")
+			f.write(x.text)
+			f.write("\n")
+			f.close()
+			# Descodificar o token
+			token_dec = decode_token(x.text)
 			valid = True
 		else:
 			valid = False
 		# Se for valido
 		if valid:
-			# adiciona um novo user (perm é usado para definir as permissoes)
-			self.add_user(username, '.', UPDIRECTORY, perm='elradfmwM')
+			# adiciona um novo user/admin (perm é usado para definir as permissoes)
+			if token_dec["role"] == "admin":
+				self.add_user(username, '.', UPDIRECTORY, perm='elradfmwM')
+			else:
+				# So tem permissoes de leitura
+				self.add_user(username, '.', UPDIRECTORY, perm='elr')
 			#return True
 		else:
 			raise AuthenticationFailed("Invalid Token")
