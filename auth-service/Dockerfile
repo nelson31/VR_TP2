@@ -21,6 +21,8 @@ RUN apt-get install -y net-tools
 # Copiar esta o conteudo desta diretoria para o container
 COPY . auth-service/
 
+# Adicionar um administrador inicial
+CMD [ "python3", "auth-service/addAdmin.py" ]
 # Correr o Flask
 CMD [ "python3", "auth-service/appauth.py" ]
 

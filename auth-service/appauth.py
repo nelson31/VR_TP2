@@ -9,7 +9,7 @@ Perfil GVR - Virtualizacao de Redes 2020/21
 Desenvolvido por: Nelson Faria (a84727@alunos.uminho.pt)
 """
 
-import os, hashlib
+import os, hashlib, socket
 import comunicadb
 import json, datetime
 from urllib.parse import urlparse
@@ -21,9 +21,9 @@ from flask import Flask, request, abort, flash, session, render_template, redire
 app = Flask(__name__)
 
 # IP do servidor de autenticacao
-auth_ip = "172.20.0.3"
+auth_ip = socket.gethostbyname("auth_container")
 # IP do servidor de HTTP
-http_ip = "172.20.0.2"
+http_ip = socket.gethostbyname("http_container")
 # Porta do servidor autenticacao
 auth_port = 5000
 # Porta do servidor HTTP

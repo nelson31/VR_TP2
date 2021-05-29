@@ -10,7 +10,7 @@ services:
         - auth-mongo
       volumes:
         - mongo-vol:/data/db
-        - /home/vagrant/VR_TP2/logs/db:/home/logs
+        - /home/vagrant/VR_TP2/logs/db/:/var/log/mongodb/
 
     auth-service:
       container_name: auth_container

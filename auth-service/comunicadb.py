@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 # importing Mongoclient from pymongo
 from pymongo import MongoClient
 import pprint
+import socket
 
 
 # Carregar algumas variaveis 
@@ -24,7 +25,7 @@ NAME_DB = os.getenv('NAME_DB')
 USERNAME_DB = os.getenv('USERNAME_DB')
 PASSWORD_DB = os.getenv('PASSWORD_DB')
 AUTHSECRET = os.getenv('AUTHSECRET')
-HOST = "mongo_container"
+HOST = socket.gethostbyname("mongo_container")
 PORTA = 27017
 
 uri = "mongodb://%s:%s@%s:%d" % (
@@ -38,7 +39,7 @@ def registaUser(username, password, email, role):
 
     try:
         # Verificar se o utilizador ja existe na base de dados 
-        if verificaUser(username, password):
+        if verificaUser(username, password)[0] == True:
             return False
         else:
             myclient = MongoClient(uri)
