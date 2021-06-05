@@ -18,5 +18,7 @@ RUN apt-get install -y iputils-ping
 RUN apt-get install -y net-tools
 
 # Correr o mongo unicamente com autenticacao
+#RUN chown mongodb /var/log
+#RUN mongod --auth --fork --logpath /var/log/mongod.log
 CMD [ "mongod", "--auth"]
 

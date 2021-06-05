@@ -9,7 +9,7 @@ Perfil GVR - Virtualizacao de Redes 2020/21
 Desenvolvido por: Nelson Faria (a84727@alunos.uminho.pt)
 """
 
-import os, hashlib, socket
+import os, hashlib, socket, logging
 import comunicadb
 import json, datetime
 from urllib.parse import urlparse
@@ -28,6 +28,8 @@ http_ip = socket.gethostbyname("http_container")
 auth_port = 5000
 # Porta do servidor HTTP
 http_port = 8888
+# Nome do ficheiro de logs
+logname = "/auth-service/logs/logs.txt"
 
 
 '''
@@ -40,10 +42,12 @@ def login():
     if(request.form.get("loginbutton")):
       
         username = str(request.form.get("username"))
+        logging.info("Novo pedido de /login para username=" + username)
         # Hash da password
         password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
         # Se os tammanhos nao forem maiores que 0
         if len(username) == 0 or len(password) == 0:
+        	logging.warning("Introduce a valid username and password")
         	flash("Introduce a valid username and password")
         	return render_template("login.html")
 
@@ -79,6 +83,7 @@ def loginFTP():
 
 	data = request.get_json(force=True)
 	username = data['username']
+	logging.info("Novo POST /loginFTP para o username=" + username)
 	password = hashlib.sha256(data['password'].encode()).hexdigest()
 	# Update do utilizador, adicionando-lhe o respetivo token
 	(updateUser,token) = comunicadb.updateUser(username,password)
@@ -96,6 +101,7 @@ Funcao usada para proceder ao tratamento das operacoes relativas ao path /verifi
 @app.route("/verificaToken", methods=['POST'])
 def verificaToken():
 
+	logging.info("Novo POST /verificaToken")
 	data = request.get_json(force=True)
 	username = data['username']
 	token = data['token']
@@ -125,14 +131,21 @@ def registaUser():
         if request.form.get("registerbutton"):
 
             username = str(request.form.get("username"))
+            logging.info("Novo POST /registaUser para username=" + username)
             password = hashlib.sha256(request.form.get("password").encode()).hexdigest()
             email = request.form.get("email")
-            if len(username) == 0 or len(email) == 0 or len(password) == 0:
+            if len(username) == 0 or len(email) == 0 or len(request.form.get("password")) == 0:
+            	logging.warning("Introduce a valid username, email and password")
             	flash("Introduce a valid username, email and password")
+            	return render_template("register.html")
+            if len(request.form.get("password")) < 8:
+            	logging.warning("Introduce a valid password")
+            	flash("Password shoud have more than 8 characters")
             	return render_template("register.html")
             role = "user"
             res = comunicadb.registaUser(username, password, email, role)
             if res == False:
+            	logging.warning("Username=" + username + " ja esta registado")
             	flash("You're already registed!")
             	return render_template("register.html")
 
@@ -145,5 +158,17 @@ def registaUser():
 
 
 if __name__ == '__main__':
+
+	# configuracao de log
+    logging.basicConfig(filename=logname,
+                            filemode='a',
+                            format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                            datefmt='%H:%M:%S',
+                            level=logging.DEBUG)
+
+    logging.info("Running Auth Service")
+    logger = logging.getLogger()
+    # fim configuracao de log
+
     app.secret_key = os.urandom(12)
     app.run(host="0.0.0.0", port=auth_port,debug=True)
